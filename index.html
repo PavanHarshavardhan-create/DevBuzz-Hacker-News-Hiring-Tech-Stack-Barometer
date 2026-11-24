@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevBuzz | Tech Hiring Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="assets/bootstrap.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">dev<span>buzz</span><small>hiring intelligence</small></div>
+  <div class="nav-label">WORKSPACE</div>
+  <a class="nav-link active" data-section="overview"><span class="nav-ico">◫</span>Overview</a>
+  <a class="nav-link" data-section="rankings"><span class="nav-ico">↗</span>Technology rankings</a>
+  <a class="nav-link" data-section="trends"><span class="nav-ico">⌁</span>Market trends</a>
+  <a class="nav-link" data-section="jobs"><span class="nav-ico">▣</span>Hiring posts</a>
+  <a class="nav-link" data-section="categories"><span class="nav-ico">◷</span>Category analysis</a>
+  <div class="nav-label mt-3">GOOD TO HAVE</div>
+  <a class="nav-link" data-section="workmode"><span class="nav-ico">⌂</span>Work mode</a>
+  <div class="nav-label mt-3">PROJECT</div>
+  <a class="nav-link" data-section="methodology"><span class="nav-ico">ⓘ</span>Methodology & limits</a>
+  <div class="side-note"><strong style="color:#dce8f8">Data source</strong><br>Hacker News · “Who is hiring?”<br><span style="color:#5de1d0">●</span> Prototype preview</div>
+</aside>
+<main class="main">
+  <div class="topbar hero-stage">
+    <canvas class="hero-motion-canvas" id="heroAnimationCanvas" aria-hidden="true"></canvas>
+    <div class="headline"><div class="eyebrow">Talent intelligence / developer ecosystem</div><div class="page-title">Hiring pulse <span style="color:var(--cyan)">.</span></div><div class="sub">What the developer market is asking for, month by month.</div></div>
+    <div class="controls"><select id="topSelect" class="form-select" style="width:105px" aria-label="Number of technologies"><option value="10" selected>Top 10</option><option value="15">Top 15</option><option value="5">Top 5</option></select><div class="avatar">DB</div></div>
+  </div>
+  <section class="query-panel" aria-label="Report filters"><form id="techQueryForm" class="query-bar"><label class="query-month"><span>REPORT MONTH</span><select id="monthSelect" aria-label="Report month"><option value="2026-11" selected>2026-11</option><option value="2026-10">2026-10</option><option value="2026-09">2026-09</option><option value="2026-08">2026-08</option><option value="2026-07">2026-07</option><option value="2026-06">2026-06</option><option value="2026-05">2026-05</option><option value="2026-04">2026-04</option><option value="2026-03">2026-03</option><option value="2026-02">2026-02</option><option value="2026-01">2026-01</option></select></label><label class="query-tech"><span>SEARCH TECH STACK</span><input id="globalSearch" type="search" list="techOptions" placeholder="Type a technology, e.g. Python or React" autocomplete="off" aria-label="Search a technology to see matching hiring roles"><datalist id="techOptions"></datalist></label><button class="query-add" id="addTechBtn" type="submit">Add <b aria-hidden="true">+</b></button></form><p class="query-help">Choose a month, then add a technology to filter the leaderboard and see matching hiring roles.</p><div class="query-actions"><button class="action-btn" id="refreshBtn" type="button">↻ &nbsp;Refresh data</button><button class="action-btn export-action" id="exportBtn" type="button">↓ &nbsp;Export CSV</button><button class="action-btn" id="shareBtn" type="button">↗ &nbsp;Share</button></div></section>
+  <div class="notice">Processed monthly Hacker News posting counts are shown through November 2026. Technology shares and chart values remain illustrative placeholders; the 1Y count estimates months missing from the processed dataset.</div><div class="range-row"><span>Trend window</span><div class="range-buttons" role="group" aria-label="Trend chart time range"><button class="range-btn selected" data-range="1">1M</button><button class="range-btn" data-range="3">3M</button><button class="range-btn" data-range="6">6M</button><button class="range-btn" data-range="12">1Y</button></div></div>
+  <section id="overview">
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-xl-3"><div class="kpi"><div class="kpi-icon">▤</div><div class="kpi-label">Valid job postings</div><div class="kpi-value" id="postingsKpi">240</div><div class="kpi-foot">Processed monthly HN count · 2026-11</div></div></div>
+      <div class="col-6 col-xl-3"><div class="kpi"><div class="kpi-icon">⌘</div><div class="kpi-label">Technologies tracked</div><div class="kpi-value" id="trackedTechKpi">32</div><div class="kpi-foot">From project technology dictionary</div></div></div>
+      <div class="col-6 col-xl-3"><div class="kpi"><div class="kpi-icon">↗</div><div class="kpi-label">Top technology</div><div class="kpi-value" id="topTechKpi">Python</div><div class="kpi-foot" id="topTechKpiFoot">By posting share</div></div></div>
+      <div class="col-6 col-xl-3"><div class="kpi"><div class="kpi-icon">◷</div><div class="kpi-label">Remote posting share</div><div class="kpi-value" id="remoteValueKpi">—</div><div class="kpi-foot" id="remoteKpiFoot">Processed monthly work-mode share · selected period</div></div></div>
+    </div>
+    <div class="row g-3 mb-4">
+      <div class="col-xl-8"><div class="panel"><div class="panel-head"><div><div class="section-title">Most-mentioned technologies</div><div class="section-sub">Share of valid postings that mention each technology</div></div><span class="tag">POSTING SHARE %</span></div><div class="ranked-chart" id="rankedChart" aria-label="Ranked technology demand"></div></div></div>
+      <div class="col-xl-4"><div class="panel"><div class="panel-head"><div><div class="section-title">Demand by category</div><div class="section-sub">Combined posting share by category</div></div></div><div class="chart-wrap"><canvas id="categoryChart"></canvas></div><div class="legend mt-3"><span><i class="dot" style="background:#5de1d0"></i>Languages</span><span><i class="dot" style="background:#7c9cff"></i>Frameworks</span><span><i class="dot" style="background:#b69cff"></i>Databases</span></div></div></div>
+    </div>
+    <div class="row g-3 mb-4">
+      <div class="col-xl-8"><div class="panel"><div class="panel-head"><div><div class="section-title">Technology momentum</div><div class="section-sub">Posting share across the latest three monthly threads</div></div><span class="tag">MONTHLY SHARE TREND</span></div><div class="chart-wrap short"><canvas id="trendChart"></canvas></div></div></div>
+      <div class="col-xl-4"><div class="panel"><div class="panel-head"><div><div class="section-title">Work arrangement</div><div class="section-sub" id="workChartContext">Live share of latest HN thread</div></div></div><div class="chart-wrap short"><canvas id="workChart"></canvas></div><div class="legend justify-content-center mt-2"><span><i class="dot" style="background:#5de1d0"></i>Remote</span><span><i class="dot" style="background:#7c9cff"></i>On-site</span><span><i class="dot" style="background:#b69cff"></i>Hybrid</span><span><i class="dot" style="background:#46536b"></i>Unspecified</span></div></div></div>
+    </div>
+  </section>
+  <section id="rankings" class="panel mb-4">
+    <div class="panel-head"><div><div class="section-title">Technology leaderboard</div><div class="section-sub">Ranked by posting share · hover or focus a technology to see matching sample roles</div></div><input id="searchTech" class="form-control" placeholder="Search technology…" style="max-width:190px"></div>
+    <div class="table-responsive"><table class="table"><thead><tr><th>Rank</th><th>Technology</th><th>Category</th><th>Posting share</th><th>vs. 2 months ago</th></tr></thead><tbody id="techTable"></tbody></table></div>
+  </section>
+  <section id="jobs" class="panel mb-4"><div class="panel-head"><div><div class="section-title">Hiring posts</div><div class="section-sub">Every ranked technology appears here, ordered by demand. Counts are illustrative estimates from posting share.</div></div><input id="searchRole" class="form-control" placeholder="Search roles or skills…" style="max-width:210px" aria-label="Search hiring posts"></div><div id="jobList" class="job-list"></div><div class="job-empty" id="jobEmpty" hidden>No matching example posts.</div></section><section id="trends" class="panel mb-4"><div class="panel-head"><div><div class="section-title">Market trends comparison</div><div class="section-sub">Compare posting share across the selected monthly hiring threads</div></div></div><div class="chart-wrap"><canvas id="comparisonChart"></canvas></div></section>
+  <section id="categories" class="panel mb-4"><div class="category-analysis-head"><div><div class="section-title">Category analysis</div><div class="section-sub">How technology demand is distributed across the tracked stack</div></div><span class="tag" id="categoryCountBadge">— CATEGORIES</span></div><div class="category-summary" id="categorySummary"></div><div class="category-breakdown" id="categoryBreakdown"></div><p class="category-note">Category shares can add up to more than 100% because a post may mention technologies from several categories.</p></section>
+  <section id="workmode" class="panel mb-4"><div class="workmode-heading"><div><div class="section-title">Work mode analysis</div><div class="section-sub">Classify explicit work arrangement signals in Hacker News job-post text.</div></div><div class="workmode-live-actions"><span class="tag" id="workmodeStatus">CONNECTING TO HN…</span><button class="action-btn" id="refreshWorkmode" type="button">↻ &nbsp;Refresh live data</button></div></div><div class="workmode-grid"><article class="workmode-stat"><span class="workmode-dot remote-dot"></span><span>Remote</span><strong id="modeRemotePct">—</strong><small id="modeRemoteCount">Waiting for HN data</small></article><article class="workmode-stat"><span class="workmode-dot onsite-dot"></span><span>On-site</span><strong id="modeOnsitePct">—</strong><small id="modeOnsiteCount">Waiting for HN data</small></article><article class="workmode-stat"><span class="workmode-dot hybrid-dot"></span><span>Hybrid</span><strong id="modeHybridPct">—</strong><small id="modeHybridCount">Waiting for HN data</small></article><article class="workmode-stat"><span class="workmode-dot unknown-dot"></span><span>Unspecified</span><strong id="modeUnknownPct">—</strong><small id="modeUnknownCount">Waiting for HN data</small></article></div><div class="workmode-rules"><h3>Project classification rules</h3><ul><li>Match explicit remote, distributed, WFH, on-site, and office-based phrases.</li><li>Assign <strong>Hybrid</strong> when hybrid is stated or both remote and on-site signals appear.</li><li>Use <strong>Unspecified</strong> when the posting has no clear signal.</li></ul><p>Live classification uses the latest HN monthly hiring thread. Signals are phrase-based; the results reflect only posts with readable text at fetch time.</p></div></section>
+  <section id="methodology" class="panel mb-4"><div class="section-title">Methodology & limitations</div><div class="row g-3 mt-1"><div class="col-md-6"><strong>How the barometer works</strong><ol class="section-sub mt-2" style="line-height:2"><li>Fetch monthly thread and top-level posting comments from the public HN Firebase API.</li><li>Clean HTML, remove contact details, drop deleted / short / duplicate posts.</li><li>Match 30–40 technologies using aliases and whole-word patterns.</li><li>Aggregate posting share by month; dashboard reads exported JSON.</li></ol></div><div class="col-md-6"><strong>Interpret results carefully</strong><p class="section-sub mt-2" style="line-height:2">The sample represents Hacker News employers, which may skew toward startups, English-language posts, and remote roles. A technology mention is not proof of an open role or a measure of the entire job market. Multiple technologies can appear in one posting, so posting shares can sum to more than 100%.</p></div></div></section>
+  <div class="footer">DEVBUZZ · HACKER NEWS HIRING & TECH STACK BAROMETER · FRONTEND PROTOTYPE</div>
+</main>
+</div>
+<script src="assets/bootstrap.bundle.min.js"></script>
+<script src="assets/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body></html>

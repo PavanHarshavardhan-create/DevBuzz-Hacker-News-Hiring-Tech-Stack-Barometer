@@ -1,67 +1,476 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="dark">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DevBuzz | Tech Hiring Intelligence</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link href="assets/bootstrap.min.css" rel="stylesheet">
-
-<link rel="stylesheet" href="styles.css">
+  <!-- The head stores page setup: title, mobile sizing, fonts, CSS, and scripts. -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#100e0b">
+  <meta name="description" content="Explore the technologies showing up in Hacker News hiring posts with the DevBuzz tech stack barometer.">
+  <title>DevBuzz — Hacker News Tech Stack Barometer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20261125-frontend5">
+  <!-- Chart.js is a chart-making library used below for the trend line and doughnut chart. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide supplies the small icons; app.js fills elements marked data-icon with SVGs. -->
+  <script defer src="assets/lucide-icons.js"></script>
+  <!-- data.js supplies the starter report before app.js builds the dashboard. -->
+  <script defer src="data.js"></script>
+  <!-- app.js connects controls and puts report values into the page. -->
+  <script defer src="app.js?v=20261125-frontend5"></script>
+  <!-- hero-motion.js animates only the ripple canvas behind the headline. -->
+  <script defer src="assets/hero-motion.js"></script>
 </head>
 <body>
-<div class="app">
-<aside class="sidebar">
-  <div class="brand">dev<span>buzz</span><small>hiring intelligence</small></div>
-  <div class="nav-label">WORKSPACE</div>
-  <a class="nav-link active" data-section="overview"><span class="nav-ico">◫</span>Overview</a>
-  <a class="nav-link" data-section="rankings"><span class="nav-ico">↗</span>Technology rankings</a>
-  <a class="nav-link" data-section="trends"><span class="nav-ico">⌁</span>Market trends</a>
-  <a class="nav-link" data-section="jobs"><span class="nav-ico">▣</span>Hiring posts</a>
-  <a class="nav-link" data-section="categories"><span class="nav-ico">◷</span>Category analysis</a>
-  <div class="nav-label mt-3">GOOD TO HAVE</div>
-  <a class="nav-link" data-section="workmode"><span class="nav-ico">⌂</span>Work mode</a>
-  <div class="nav-label mt-3">PROJECT</div>
-  <a class="nav-link" data-section="methodology"><span class="nav-ico">ⓘ</span>Methodology & limits</a>
-  <div class="side-note"><strong style="color:#dce8f8">Data source</strong><br>Hacker News · “Who is hiring?”<br><span style="color:#5de1d0">●</span> Prototype preview</div>
-</aside>
-<main class="main">
-  <div class="topbar hero-stage">
-    <canvas class="hero-motion-canvas" id="heroAnimationCanvas" aria-hidden="true"></canvas>
-    <div class="headline"><div class="eyebrow">Talent intelligence / developer ecosystem</div><div class="page-title">Hiring pulse <span style="color:var(--cyan)">.</span></div><div class="sub">What the developer market is asking for, month by month.</div></div>
-    <div class="controls"><select id="topSelect" class="form-select" style="width:105px" aria-label="Number of technologies"><option value="10" selected>Top 10</option><option value="15">Top 15</option><option value="5">Top 5</option></select><div class="avatar">DB</div></div>
+  <!--
+    Beginner guide: HTML gives each page part its meaning and content. A class (for example
+    class="kpi-card") is a reusable styling hook; an id (for example id="matrix") is a unique
+    handle used by links and JavaScript. aria-* attributes describe controls to assistive tools.
+    DevBuzz feature map (see matching numbered sections in app.js and styles.css):
+    01 sidebar, 02 headline/ripple, 03 month and tech search,
+    04 period and KPI cards, 05 trend chart and rankings,
+    06 backend report loading, 07 report context and work-mode estimates.
+  -->
+  <!-- Keyboard users can jump over navigation; #main-content points to the main element below. -->
+  <a class="skip-link" href="#main-content">Skip to dashboard</a>
+
+  <!-- These empty layers add background glow; aria-hidden means screen readers can ignore decoration. -->
+  <div class="aura-bg">
+    <!-- CSS paints these decorative layers, keeping the glow behind readable dashboard content. -->
+    <div class="aura-layer aura-layer-1" aria-hidden="true"></div>
+    <div class="aura-layer aura-layer-2" aria-hidden="true"></div>
+    <div class="aura-layer aura-layer-3" aria-hidden="true"></div>
+    <div class="aura-layer aura-layer-4" aria-hidden="true"></div>
+
+    <div class="aura-content">
+      <!-- Feature 01 — Sidebar: quick links to dashboard sections and the current data status.
+           The href values such as #jobs jump to elements with the same id. aria-label names the region. -->
+      <aside class="workspace-sidebar" id="workspaceSidebar" aria-label="DevBuzz workspace">
+        <div class="sidebar-top">
+          <a class="brand sidebar-brand" href="#overview" aria-label="DevBuzz home">
+            <span class="brand-mark" data-icon="activity" aria-hidden="true"></span>
+            <span class="sidebar-brand-copy">Dev<span class="brand-accent">Buzz</span><small>HIRING INTELLIGENCE</small></span>
+          </a>
+          <!-- JavaScript uses this button to keep the sidebar open; aria-pressed reports its on/off state. -->
+          <button class="sidebar-pin" id="sidebarPinButton" type="button" aria-label="Keep sidebar expanded" aria-pressed="false" title="Keep sidebar expanded">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="3"/><path d="M9 4v16M14 9l-3 3 3 3"/></svg>
+          </button>
+        </div>
+        <div class="workspace-card" aria-label="Market pulse workspace">
+          <span class="workspace-mark">HN</span>
+          <span class="workspace-copy"><b>Market pulse</b><small>Monthly hiring report</small></span>
+          <span class="workspace-chevron" data-icon="chevron-down" aria-hidden="true"></span>
+          <span class="sidebar-tooltip"><b>Market pulse</b><small>Monthly hiring report</small></span>
+        </div>
+        <div class="sidebar-caption">REPORT</div>
+        <nav class="main-nav" id="mainNav" aria-label="Main navigation">
+          <a class="nav-link is-active" href="#overview" aria-current="page" aria-label="Barometer">
+            <span class="nav-icon" data-icon="activity" aria-hidden="true"></span><span class="nav-label">Barometer</span>
+            <span class="sidebar-tooltip"><b>Barometer</b><small>Hiring trends at a glance</small></span>
+          </a>
+          <a class="nav-link" href="#workmode" aria-label="Work arrangements">
+            <span class="nav-icon" data-icon="map-pin" aria-hidden="true"></span><span class="nav-label">Work mode</span>
+            <span class="sidebar-tooltip"><b>Work mode</b><small>Text-based arrangement estimates</small></span>
+          </a>
+          <a class="nav-link" href="#matrix" aria-label="Tech matrix">
+            <span class="nav-icon" data-icon="layers" aria-hidden="true"></span><span class="nav-label">Tech matrix</span>
+            <span class="sidebar-tooltip"><b>Tech matrix</b><small>Ranked technology mentions</small></span>
+          </a>
+          <a class="nav-link" href="#jobs" aria-label="Hiring posts">
+            <span class="nav-icon" data-icon="briefcase-business" aria-hidden="true"></span><span class="nav-label">Hiring posts</span>
+            <span class="sidebar-tooltip"><b>Hiring posts</b><small>Browse the source listings</small></span>
+          </a>
+          <a class="nav-link" href="#methodology" aria-label="Methodology">
+            <span class="nav-icon" data-icon="newspaper" aria-hidden="true"></span><span class="nav-label">Methodology</span>
+            <span class="sidebar-tooltip"><b>Methodology</b><small>How the signals are measured</small></span>
+          </a>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="live-pill" id="dataBadge">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="dataBadgeText">Sample data</span>
+            <span class="sidebar-tooltip"><b id="dataBadgeTooltip">Sample data</b><small>Hacker News monthly signals</small></span>
+          </div>
+          <p>Hacker News “Who is Hiring?”<br>monthly signals</p>
+        </div>
+      </aside>
+
+      <!-- Header: global search and import shortcut stay available while scrolling. -->
+      <header class="topbar">
+          <div class="topbar-inner">
+          <div class="breadcrumb-label"><span>DEVBUZZ</span><i>/</i><b>Market pulse</b></div>
+          <label class="global-search">
+            <span class="sr-only">Search technologies and job posts</span>
+            <span class="icon-wrap" data-icon="search" aria-hidden="true"></span>
+            <input id="globalSearch" type="search" placeholder="Search technologies or roles" autocomplete="off">
+            <kbd>Ctrl K</kbd>
+          </label>
+
+          <div class="topbar-actions">
+            <button class="button button-quiet import-trigger" type="button" data-open-import>
+              <span data-icon="download" aria-hidden="true"></span>
+              <span>Import data</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main contains the report itself; page-wrap keeps it centered and within a readable width. -->
+      <main id="main-content" class="page-wrap">
+        <!-- Feature 02 — Intro: the headline introduces the report; canvas is a drawing area for the ripple.
+             aria-hidden keeps that visual effect from being announced as content. -->
+        <section class="intro-section" id="overview" aria-labelledby="page-title">
+          <canvas class="intro-motion" id="introMotion" aria-hidden="true"></canvas>
+          <div class="intro-copy">
+            <div class="eyebrow">
+              <span class="eyebrow-line"></span>
+              Hacker News hiring signals
+              <span class="eyebrow-date" id="reportContext">MONTHLY REPORT</span>
+            </div>
+            <h1 id="page-title">See the job,<br class="desktop-break"> <em>spot the skill.</em></h1>
+            <p class="intro-description">A clear read on the tools, languages, and skills showing up in developer job posts.</p>
+          </div>
+          <!-- Feature 03 — Select a month and add technologies to the comparison chart below the matrix. -->
+          <div class="intro-controls">
+            <form class="query-bar" id="techStackForm">
+              <label class="month-control" for="monthSelect">
+                <span class="query-control-label">REPORT MONTH</span>
+                <span class="month-field">
+                  <span data-icon="calendar-days" aria-hidden="true"></span>
+                  <select id="monthSelect" aria-label="Choose report month"></select>
+                  <span class="select-chevron" data-icon="chevron-down" aria-hidden="true"></span>
+                </span>
+              </label>
+              <label class="skill-control" for="techStackSearch">
+                <span class="query-control-label">ADD TECHNOLOGY TO CHART</span>
+                <span class="skill-input-wrap">
+                  <span data-icon="search" aria-hidden="true"></span>
+                  <input id="techStackSearch" type="search" list="techStackOptions" placeholder="Type a technology, e.g. Go or React" autocomplete="off" aria-label="Add a technology to the comparison chart">
+                  <!-- datalist provides type-ahead suggestions while still allowing free text. -->
+                  <datalist id="techStackOptions"></datalist>
+                </span>
+              </label>
+              <button class="add-button" type="submit">Add <span aria-hidden="true">+</span></button>
+            </form>
+            <p class="query-help">Choose a month, then add technologies to compare them below the Technology Matrix.</p>
+            <div class="intro-actions" aria-label="Report actions">
+              <button class="button button-outline" id="refreshBackendButton" type="button">
+                <span data-icon="refresh-cw" aria-hidden="true"></span>
+                <span>Refresh data</span>
+              </button>
+              <button class="button button-primary" id="exportButton" type="button">
+                <span data-icon="arrow-down" aria-hidden="true"></span>
+                <span>Export CSV</span>
+              </button>
+              <button class="button button-outline" id="shareButton" type="button">
+                <span data-icon="share" aria-hidden="true"></span>
+                <span>Share</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="report-meta-strip" aria-label="Report context">
+          <div class="report-meta-source">
+            <span class="report-meta-mark" aria-hidden="true">DB</span>
+            <div><strong id="reportSourceLabel">SAMPLE REPORT</strong><span id="reportSourceNote">Illustrative figures for exploring the dashboard</span></div>
+          </div>
+          <div class="report-meta-facts">
+            <div><span>REPORT PERIOD</span><strong id="reportPeriodValue">—</strong></div>
+            <div><span>MONTH POSTS</span><strong id="reportPostCount">—</strong></div>
+            <div><span>LOADED</span><strong id="reportLoadedAt">SAMPLE</strong></div>
+          </div>
+        </section>
+
+        <!-- Feature 04 — Period: data-range tells JavaScript how many months to chart (M = month, Y = year).
+             role="group" and aria-label give these related buttons one accessible name. -->
+        <section class="period-row" aria-label="Choose chart time range">
+          <div class="period-copy">
+            <span class="section-kicker">Market pulse</span>
+            <span class="period-caption" id="periodCaption">A one-year view of developer hiring mentions</span>
+          </div>
+          <div class="segmented-control" role="group" aria-label="Trend chart time range">
+            <button type="button" class="period-button" data-range="1">1M</button>
+            <button type="button" class="period-button" data-range="3">3M</button>
+            <button type="button" class="period-button" data-range="6">6M</button>
+            <button type="button" class="period-button is-selected" data-range="12">1Y</button>
+          </div>
+        </section>
+
+        <!-- Feature 04 — KPI cards: KPI means key performance indicator, a number that summarizes the report.
+             JavaScript fills the id placeholders; data-kpi-bars marks where each tiny history bar belongs. -->
+        <section class="kpi-grid" aria-label="Monthly highlights">
+          <article class="kpi-card kpi-card-featured">
+            <div class="kpi-topline">
+              <span class="kpi-label-group"><span class="kpi-label">Job posts analyzed</span><span class="kpi-valid-tag" title="Posts included after the report cleaning step">VALID</span></span>
+              <span class="kpi-icon" data-icon="briefcase-business" aria-hidden="true"></span>
+            </div>
+            <div class="kpi-value-row"><strong class="kpi-value" id="postingsValue">—</strong><span class="kpi-unit">posts</span></div>
+            <div class="kpi-foot"><span class="kpi-note" id="postingsNote">Valid posts across the selected range</span><span class="kpi-mini-bar" data-kpi-bars="postings"></span></div>
+          </article>
+
+          <article class="kpi-card">
+            <div class="kpi-topline">
+              <span class="kpi-label">Most mentioned</span>
+              <span class="kpi-icon" data-icon="terminal" aria-hidden="true"></span>
+            </div>
+            <div class="kpi-value-row"><strong class="kpi-value kpi-tech" id="dominantValue">—</strong><span class="kpi-change kpi-share-value" id="dominantShare">—</span></div>
+            <div class="kpi-foot"><span class="kpi-note" id="dominantNote">Share of job posts</span><span class="kpi-mini-bar" data-kpi-bars="dominant"></span></div>
+          </article>
+
+          <article class="kpi-card">
+            <div class="kpi-topline">
+              <span class="kpi-label">Second most mentioned</span>
+              <span class="kpi-icon kpi-icon-warm" data-icon="layers" aria-hidden="true"></span>
+            </div>
+            <div class="kpi-value-row"><strong class="kpi-value kpi-tech" id="runnerUpValue">—</strong><span class="kpi-change kpi-share-value" id="runnerUpShare">—</span></div>
+            <div class="kpi-foot"><span class="kpi-note" id="runnerUpNote">Ranked by selected-month post share</span><span class="kpi-mini-bar" data-kpi-bars="runnerUp"></span></div>
+          </article>
+
+          <article class="kpi-card">
+            <div class="kpi-topline">
+              <span class="kpi-label">Remote or hybrid</span>
+              <span class="kpi-icon" data-icon="globe" aria-hidden="true"></span>
+            </div>
+            <div class="kpi-value-row"><strong class="kpi-value" id="remoteValue">—</strong><span class="kpi-unit" id="remoteUnit">demo signal</span></div>
+            <div class="kpi-foot"><span class="kpi-note" id="remoteNote">Text estimate · shown when post details are available</span><span class="kpi-mini-bar" data-kpi-bars="remote"></span></div>
+          </article>
+        </section>
+
+        <!-- Feature 05 — Analytics: Chart.js draws into the canvas areas; the legend and category selector
+             let readers explore technology shares and rankings. -->
+        <section class="analytics-grid" aria-label="Technology analytics">
+          <article class="panel trend-panel">
+            <div class="panel-heading trend-heading">
+              <div>
+                <div class="section-kicker">Technology trends</div>
+                <h2>What developers are being hired to use</h2>
+                <p class="panel-description">Share by technology across every available month in the selected period.</p>
+              </div>
+              <label class="compact-select">
+                <span class="sr-only">Choose trend category</span>
+                <select id="trendCategory">
+                  <option value="language">Languages</option>
+                  <option value="framework">Frameworks</option>
+                  <option value="infrastructure">Infrastructure</option>
+                  <option value="database">Databases</option>
+                  <option value="ai">AI / ML</option>
+                </select>
+                <span data-icon="chevron-down" aria-hidden="true"></span>
+              </label>
+            </div>
+            <div class="chart-frame trend-chart-frame">
+              <canvas id="trendChart" aria-label="Line chart showing all ranked technology shares over time"></canvas>
+              <div class="chart-message" id="trendChartMessage" hidden>Chart.js could not load. Check your internet connection and refresh.</div>
+            </div>
+            <div class="trend-legend" id="trendLegend" role="group" aria-label="Toggle ranked technology series"></div>
+            <div class="chart-footnote">
+              <span><span class="legend-dot"></span>Technology mention share</span>
+              <span id="trendFootnote">All ranked technologies are shown; blank months mean no data. Use the legend to toggle lines.</span>
+            </div>
+          </article>
+
+          <article class="panel mix-panel">
+            <div class="panel-heading">
+              <div>
+                <div class="section-kicker">Stack composition</div>
+                <h2>Where mentions cluster</h2>
+                <p class="panel-description">Share of detected technology mentions.</p>
+              </div>
+              <span class="panel-badge" data-icon="layers" aria-label="Technology categories"></span>
+            </div>
+            <div class="mix-chart-layout">
+              <div class="mix-chart-wrap">
+                <canvas id="mixChart" aria-label="Doughnut chart showing technology mention share by category"></canvas>
+                <div class="mix-chart-center"><strong id="mixTotal">—</strong><span>mentions</span></div>
+              </div>
+              <div class="mix-legend" id="mixLegend"></div>
+            </div>
+            <div class="insight-callout">
+              <span class="callout-icon" data-icon="sparkles" aria-hidden="true"></span>
+              <div><span class="callout-label">Signal to watch</span><p id="macroObservation">Load a report to see the biggest movement in the selected month.</p></div>
+            </div>
+          </article>
+        </section>
+
+        <section class="workmode-section panel" id="workmode" aria-labelledby="workmode-title">
+          <div class="workmode-heading">
+            <div>
+              <div class="section-kicker">Language signals · estimate</div>
+              <h2 id="workmode-title">Where the work happens</h2>
+              <p class="panel-description">Phrase matches and explicit work-mode labels grouped by the arrangement each post describes.</p>
+            </div>
+            <span class="workmode-period" id="workmodePeriod">SELECT A REPORT</span>
+          </div>
+          <div class="workmode-visual" id="workmodeTrack" role="img" aria-label="Work arrangement estimate unavailable">
+            <span class="workmode-segment mode-remote" id="workmodeRemoteBar" aria-hidden="true"></span>
+            <span class="workmode-segment mode-onsite" id="workmodeOnsiteBar" aria-hidden="true"></span>
+            <span class="workmode-segment mode-hybrid" id="workmodeHybridBar" aria-hidden="true"></span>
+            <span class="workmode-segment mode-unknown" id="workmodeUnspecifiedBar" aria-hidden="true"></span>
+          </div>
+          <div class="workmode-grid" role="list" aria-label="Estimated work arrangements">
+            <div class="workmode-item mode-remote" role="listitem">
+              <span class="workmode-swatch" aria-hidden="true"></span><span class="workmode-label">Remote</span><strong id="workmodeRemoteValue">—</strong><small id="workmodeRemoteCount">No source text</small>
+            </div>
+            <div class="workmode-item mode-onsite" role="listitem">
+              <span class="workmode-swatch" aria-hidden="true"></span><span class="workmode-label">On-site</span><strong id="workmodeOnsiteValue">—</strong><small id="workmodeOnsiteCount">No source text</small>
+            </div>
+            <div class="workmode-item mode-hybrid" role="listitem">
+              <span class="workmode-swatch" aria-hidden="true"></span><span class="workmode-label">Hybrid</span><strong id="workmodeHybridValue">—</strong><small id="workmodeHybridCount">No source text</small>
+            </div>
+            <div class="workmode-item mode-unknown" role="listitem">
+              <span class="workmode-swatch" aria-hidden="true"></span><span class="workmode-label">Unspecified</span><strong id="workmodeUnspecifiedValue">—</strong><small id="workmodeUnspecifiedCount">No clear phrase found</small>
+            </div>
+          </div>
+          <p class="workmode-note" id="workmodeNote" role="status">Import postings.csv with readable post text to see an estimate for this month.</p>
+        </section>
+
+        <!-- Technology matrix: JavaScript creates table rows from the selected month's data. Filters,
+             search, and page buttons narrow that list. A table header labels each column. -->
+        <section class="panel matrix-panel" id="matrix" aria-labelledby="matrix-title">
+          <div class="panel-heading matrix-heading">
+            <div>
+              <div class="section-kicker">Technology matrix</div>
+              <h2 id="matrix-title">The tools appearing in job posts</h2>
+              <p class="panel-description">Ranked by the share of selected-month posts that mention them.</p>
+            </div>
+            <label class="table-search">
+              <span data-icon="search" aria-hidden="true"></span>
+              <span class="sr-only">Filter technology list</span>
+              <input id="tableSearch" type="search" placeholder="Filter technologies">
+            </label>
+          </div>
+          <div class="filter-row" id="categoryFilters" role="group" aria-label="Filter technology categories">
+            <button class="filter-chip is-selected" data-category="all" type="button">All stacks</button>
+            <button class="filter-chip" data-category="language" type="button">Languages</button>
+            <button class="filter-chip" data-category="framework" type="button">Frameworks</button>
+            <button class="filter-chip" data-category="infrastructure" type="button">Infrastructure</button>
+            <button class="filter-chip" data-category="database" type="button">Databases</button>
+            <button class="filter-chip" data-category="ai" type="button">AI / ML</button>
+          </div>
+          <div class="table-scroll">
+            <table class="tech-table">
+              <thead><tr><th scope="col">Technology</th><th scope="col">Category</th><th scope="col">Posts mentioning it</th><th scope="col">Monthly change</th><th scope="col">Signal</th></tr></thead>
+              <tbody id="techTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="tableEmpty" hidden>
+              <span data-icon="search" aria-hidden="true"></span>
+              <strong>No technologies found</strong>
+              <span>Try a different search or category.</span>
+            </div>
+          </div>
+          <div class="table-footer">
+            <span id="tableSummary">Showing —</span>
+            <div class="pagination">
+              <button class="button button-pagination" id="previousPage" type="button" aria-label="Previous page"><span data-icon="arrow-down" class="arrow-up" aria-hidden="true"></span>Previous</button>
+              <span id="pageIndicator">Page 1</span>
+              <button class="button button-pagination" id="nextPage" type="button">Next<span data-icon="arrow-down" aria-hidden="true"></span></button>
+            </div>
+          </div>
+        </section>
+
+       <!-- Stack comparison is independent from matrix and feed filtering; additions update this block only. -->
+        <section class="panel stack-chart-panel" id="stackComparison" aria-labelledby="stack-comparison-title">
+          <div class="panel-heading">
+            <div>
+              <div class="section-kicker">Stack comparison</div>
+              <h2 id="stack-comparison-title">Your stack comparison</h2>
+              <p class="panel-description">Only technologies you add appear here, sorted by their share of job posts in the chosen month.</p>
+            </div>
+            <span class="stack-chart-summary" id="stackChartSummary">Sample data · latest month</span>
+          </div>
+          <div class="stack-chart-empty" id="stackChartEmpty" role="status">
+            Add a technology using the search above to compare it with your other selections.
+          </div>
+          <div class="stack-bar-chart" id="stackBarChart" role="list" aria-label="Only added technologies, sorted by monthly post share" hidden></div>
+        </section>
+
+        <!-- Hiring feed: JavaScript fills this card grid with matching example or imported posts. -->
+        <section class="feed-section" id="jobs" aria-labelledby="jobs-title">
+          <div class="feed-heading">
+            <div>
+              <div class="section-kicker">From the community</div>
+              <h2 id="jobs-title">Hiring posts, with the tech pulled out</h2>
+              <p class="panel-description">A quick way to see the skills behind the numbers.</p>
+            </div>
+            <label class="compact-select feed-sort">
+              <span class="sr-only">Sort job posts</span>
+              <select id="postSort">
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="technologies">Most technologies</option>
+                <option value="company">Company name</option>
+              </select>
+              <span data-icon="chevron-down" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="job-grid" id="jobGrid"></div>
+          <div class="feed-empty" id="feedEmpty" hidden>
+            <span data-icon="newspaper" aria-hidden="true"></span>
+            <strong>No job posts in this view</strong>
+            <span>Import postings.csv from the backend pipeline to explore real post text.</span>
+          </div>
+          <div class="feed-more-wrap"><button class="button button-outline" id="loadMore" type="button">Load more posts <span data-icon="chevron-down" aria-hidden="true"></span></button></div>
+        </section>
+
+        <!-- Methodology: explains how mentions become report numbers, so readers can interpret them. -->
+        <section class="methodology-section" id="methodology" aria-labelledby="method-title">
+          <div class="methodology-heading">
+            <div class="section-kicker">How the barometer works</div>
+            <h2 id="method-title">Simple counts. Clear signals.</h2>
+            <p>DevBuzz scans the public Hacker News hiring threads and counts which technology names appear in each job post.</p>
+          </div>
+          <div class="method-grid">
+            <article class="method-card"><span class="method-number">01</span><span class="method-icon" data-icon="radio" aria-hidden="true"></span><h3>Collect</h3><p>Find monthly “Who is Hiring?” threads and read their direct replies, which are the job postings.</p></article>
+            <article class="method-card"><span class="method-number">02</span><span class="method-icon" data-icon="search" aria-hidden="true"></span><h3>Detect</h3><p>Match technology names and aliases from a dictionary. Repeated mentions count once per posting.</p></article>
+            <article class="method-card"><span class="method-number">03</span><span class="method-icon" data-icon="chart-no-axes-combined" aria-hidden="true"></span><h3>Compare</h3><p>Calculate the share of valid postings mentioning each technology, then compare it with earlier months.</p></article>
+          </div>
+          <div class="formula-card">
+            <span class="formula-label">The main percentage</span>
+            <p><strong>Post share</strong> = job posts that mention a technology ÷ all valid job posts in that month.</p>
+            <span class="formula-note">One post can mention several technologies, so percentages across technologies can add up to more than 100%.</span>
+          </div>
+          <details class="data-notes">
+            <summary>What data can I import?</summary>
+            <p>Use the backend’s <code>monthly_share.json</code> or <code>monthly_share.csv</code> for charts and rankings. You can also select several pipeline CSVs together: <code>postings.csv</code>, <code>posting_tech.csv</code>, and <code>tech_dictionary.csv</code>. The page will use posting text for the feed and can calculate monthly shares from the posting/technology pairs.</p>
+            <p>The backend does not currently extract company, salary, or structured work-mode labels. When imported post text is available, the dashboard estimates work mode from phrases; treat those counts as a heuristic. The sample report labels itself clearly, and imported posts show only fields present in the data.</p>
+          </details>
+        </section>
+
+        <footer class="site-footer">
+          <a class="brand footer-brand" href="#overview"><span class="brand-mark" data-icon="activity" aria-hidden="true"></span><span>Dev<span class="brand-accent">Buzz</span></span></a>
+          <p>Developer hiring signals, built from public community posts.</p>
+          <a href="https://github.com/HackerNews/API" target="_blank" rel="noreferrer">Hacker News API <span data-icon="arrow-up-right" aria-hidden="true"></span></a>
+        </footer>
+      </main>
+    </div>
   </div>
-  <section class="query-panel" aria-label="Report filters"><form id="techQueryForm" class="query-bar"><label class="query-month"><span>REPORT MONTH</span><select id="monthSelect" aria-label="Report month"><option value="2026-11" selected>2026-11</option><option value="2026-10">2026-10</option><option value="2026-09">2026-09</option><option value="2026-08">2026-08</option><option value="2026-07">2026-07</option><option value="2026-06">2026-06</option><option value="2026-05">2026-05</option><option value="2026-04">2026-04</option><option value="2026-03">2026-03</option><option value="2026-02">2026-02</option><option value="2026-01">2026-01</option></select></label><label class="query-tech"><span>SEARCH TECH STACK</span><input id="globalSearch" type="search" list="techOptions" placeholder="Type a technology, e.g. Python or React" autocomplete="off" aria-label="Search a technology to see matching hiring roles"><datalist id="techOptions"></datalist></label><button class="query-add" id="addTechBtn" type="submit">Add <b aria-hidden="true">+</b></button></form><p class="query-help">Choose a month, then add a technology to filter the leaderboard and see matching hiring roles.</p><div class="query-actions"><button class="action-btn" id="refreshBtn" type="button">↻ &nbsp;Refresh data</button><button class="action-btn export-action" id="exportBtn" type="button">↓ &nbsp;Export CSV</button><button class="action-btn" id="shareBtn" type="button">↗ &nbsp;Share</button></div></section>
-  <div class="notice">Processed monthly Hacker News posting counts are shown through November 2026. Technology shares and chart values remain illustrative placeholders; the 1Y count estimates months missing from the processed dataset.</div><div class="range-row"><span>Trend window</span><div class="range-buttons" role="group" aria-label="Trend chart time range"><button class="range-btn selected" data-range="1">1M</button><button class="range-btn" data-range="3">3M</button><button class="range-btn" data-range="6">6M</button><button class="range-btn" data-range="12">1Y</button></div></div>
-  <section id="overview">
-    <div class="row g-3 mb-4">
-      <div class="col-6 col-xl-3"><div class="kpi"><div class="kpi-icon">▤</div><div class="kpi-label">Valid job postings</div><div class="kpi-value" id="postingsKpi">240</div><div class="kpi-foot">Processed monthly HN count · 2026-11</div></div></div>
-      <div class="col-6 col-xl-3"><div class="kpi"><div class="kpi-icon">⌘</div><div class="kpi-label">Technologies tracked</div><div class="kpi-value" id="trackedTechKpi">32</div><div class="kpi-foot">From project technology dictionary</div></div></div>
-      <div class="col-6 col-xl-3"><div class="kpi"><div class="kpi-icon">↗</div><div class="kpi-label">Top technology</div><div class="kpi-value" id="topTechKpi">Python</div><div class="kpi-foot" id="topTechKpiFoot">By posting share</div></div></div>
-      <div class="col-6 col-xl-3"><div class="kpi"><div class="kpi-icon">◷</div><div class="kpi-label">Remote posting share</div><div class="kpi-value" id="remoteValueKpi">—</div><div class="kpi-foot" id="remoteKpiFoot">Processed monthly work-mode share · selected period</div></div></div>
-    </div>
-    <div class="row g-3 mb-4">
-      <div class="col-xl-8"><div class="panel"><div class="panel-head"><div><div class="section-title">Most-mentioned technologies</div><div class="section-sub">Share of valid postings that mention each technology</div></div><span class="tag">POSTING SHARE %</span></div><div class="ranked-chart" id="rankedChart" aria-label="Ranked technology demand"></div></div></div>
-      <div class="col-xl-4"><div class="panel"><div class="panel-head"><div><div class="section-title">Demand by category</div><div class="section-sub">Combined posting share by category</div></div></div><div class="chart-wrap"><canvas id="categoryChart"></canvas></div><div class="legend mt-3"><span><i class="dot" style="background:#5de1d0"></i>Languages</span><span><i class="dot" style="background:#7c9cff"></i>Frameworks</span><span><i class="dot" style="background:#b69cff"></i>Databases</span></div></div></div>
-    </div>
-    <div class="row g-3 mb-4">
-      <div class="col-xl-8"><div class="panel"><div class="panel-head"><div><div class="section-title">Technology momentum</div><div class="section-sub">Posting share across the latest three monthly threads</div></div><span class="tag">MONTHLY SHARE TREND</span></div><div class="chart-wrap short"><canvas id="trendChart"></canvas></div></div></div>
-      <div class="col-xl-4"><div class="panel"><div class="panel-head"><div><div class="section-title">Work arrangement</div><div class="section-sub" id="workChartContext">Live share of latest HN thread</div></div></div><div class="chart-wrap short"><canvas id="workChart"></canvas></div><div class="legend justify-content-center mt-2"><span><i class="dot" style="background:#5de1d0"></i>Remote</span><span><i class="dot" style="background:#7c9cff"></i>On-site</span><span><i class="dot" style="background:#b69cff"></i>Hybrid</span><span><i class="dot" style="background:#46536b"></i>Unspecified</span></div></div></div>
-    </div>
-  </section>
-  <section id="rankings" class="panel mb-4">
-    <div class="panel-head"><div><div class="section-title">Technology leaderboard</div><div class="section-sub">Ranked by posting share · hover or focus a technology to see matching sample roles</div></div><input id="searchTech" class="form-control" placeholder="Search technology…" style="max-width:190px"></div>
-    <div class="table-responsive"><table class="table"><thead><tr><th>Rank</th><th>Technology</th><th>Category</th><th>Posting share</th><th>vs. 2 months ago</th></tr></thead><tbody id="techTable"></tbody></table></div>
-  </section>
-  <section id="jobs" class="panel mb-4"><div class="panel-head"><div><div class="section-title">Hiring posts</div><div class="section-sub">Every ranked technology appears here, ordered by demand. Counts are illustrative estimates from posting share.</div></div><input id="searchRole" class="form-control" placeholder="Search roles or skills…" style="max-width:210px" aria-label="Search hiring posts"></div><div id="jobList" class="job-list"></div><div class="job-empty" id="jobEmpty" hidden>No matching example posts.</div></section><section id="trends" class="panel mb-4"><div class="panel-head"><div><div class="section-title">Market trends comparison</div><div class="section-sub">Compare posting share across the selected monthly hiring threads</div></div></div><div class="chart-wrap"><canvas id="comparisonChart"></canvas></div></section>
-  <section id="categories" class="panel mb-4"><div class="category-analysis-head"><div><div class="section-title">Category analysis</div><div class="section-sub">How technology demand is distributed across the tracked stack</div></div><span class="tag" id="categoryCountBadge">— CATEGORIES</span></div><div class="category-summary" id="categorySummary"></div><div class="category-breakdown" id="categoryBreakdown"></div><p class="category-note">Category shares can add up to more than 100% because a post may mention technologies from several categories.</p></section>
-  <section id="workmode" class="panel mb-4"><div class="workmode-heading"><div><div class="section-title">Work mode analysis</div><div class="section-sub">Classify explicit work arrangement signals in Hacker News job-post text.</div></div><div class="workmode-live-actions"><span class="tag" id="workmodeStatus">CONNECTING TO HN…</span><button class="action-btn" id="refreshWorkmode" type="button">↻ &nbsp;Refresh live data</button></div></div><div class="workmode-grid"><article class="workmode-stat"><span class="workmode-dot remote-dot"></span><span>Remote</span><strong id="modeRemotePct">—</strong><small id="modeRemoteCount">Waiting for HN data</small></article><article class="workmode-stat"><span class="workmode-dot onsite-dot"></span><span>On-site</span><strong id="modeOnsitePct">—</strong><small id="modeOnsiteCount">Waiting for HN data</small></article><article class="workmode-stat"><span class="workmode-dot hybrid-dot"></span><span>Hybrid</span><strong id="modeHybridPct">—</strong><small id="modeHybridCount">Waiting for HN data</small></article><article class="workmode-stat"><span class="workmode-dot unknown-dot"></span><span>Unspecified</span><strong id="modeUnknownPct">—</strong><small id="modeUnknownCount">Waiting for HN data</small></article></div><div class="workmode-rules"><h3>Project classification rules</h3><ul><li>Match explicit remote, distributed, WFH, on-site, and office-based phrases.</li><li>Assign <strong>Hybrid</strong> when hybrid is stated or both remote and on-site signals appear.</li><li>Use <strong>Unspecified</strong> when the posting has no clear signal.</li></ul><p>Live classification uses the latest HN monthly hiring thread. Signals are phrase-based; the results reflect only posts with readable text at fetch time.</p></div></section>
-  <section id="methodology" class="panel mb-4"><div class="section-title">Methodology & limitations</div><div class="row g-3 mt-1"><div class="col-md-6"><strong>How the barometer works</strong><ol class="section-sub mt-2" style="line-height:2"><li>Fetch monthly thread and top-level posting comments from the public HN Firebase API.</li><li>Clean HTML, remove contact details, drop deleted / short / duplicate posts.</li><li>Match 30–40 technologies using aliases and whole-word patterns.</li><li>Aggregate posting share by month; dashboard reads exported JSON.</li></ol></div><div class="col-md-6"><strong>Interpret results carefully</strong><p class="section-sub mt-2" style="line-height:2">The sample represents Hacker News employers, which may skew toward startups, English-language posts, and remote roles. A technology mention is not proof of an open role or a measure of the entire job market. Multiple technologies can appear in one posting, so posting shares can sum to more than 100%.</p></div></div></section>
-  <div class="footer">DEVBUZZ · HACKER NEWS HIRING & TECH STACK BAROMETER · FRONTEND PROTOTYPE</div>
-</main>
-</div>
-<script src="assets/bootstrap.bundle.min.js"></script>
-<script src="assets/chart.umd.min.js"></script>
-<script src="app.js"></script>
-</body></html>
+
+  <!-- Import dialog: the browser opens this overlay for local CSV/JSON files; no upload is needed. -->
+  <dialog class="import-dialog" id="importDialog" aria-labelledby="importTitle">
+    <form class="dialog-card" method="dialog">
+      <div class="dialog-heading">
+        <div><div class="section-kicker">Use your own numbers</div><h2 id="importTitle">Import a DevBuzz report</h2></div>
+        <button class="icon-button" type="button" data-close-import aria-label="Close import window"><span data-icon="x" aria-hidden="true"></span></button>
+      </div>
+      <p>Choose one or more CSV or JSON files from the backend data folder. Your files stay in this browser and are not uploaded anywhere.</p>
+      <!-- The visible label sits over the file input so the large area opens the file chooser. -->
+      <label class="file-picker">
+        <span class="file-picker-icon" data-icon="download" aria-hidden="true"></span>
+        <strong>Select report files</strong>
+        <span>monthly_share.json / .csv, postings.csv, posting_tech.csv, or tech_dictionary.csv</span>
+        <input id="dataFiles" type="file" accept=".csv,.json,application/json,text/csv" multiple>
+      </label>
+      <div class="selected-files" id="selectedFiles">No files selected</div>
+      <div class="dialog-actions">
+        <button class="button button-outline" type="button" data-reset-demo>Use sample report</button>
+        <button class="button button-primary" id="loadFiles" type="button">Load selected files</button>
+      </div>
+      <p class="dialog-note"><span data-icon="circle-question-mark" aria-hidden="true"></span>Files are read locally by JavaScript. The dashboard does not send them to a server.</p>
+    </form>
+  </dialog>
+  <!-- Toast is a short status message (for example, “CSV exported”); aria-live announces updates accessibly. -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

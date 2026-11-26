@@ -1519,9 +1519,9 @@
     });
   }
 
-  /* FEATURE 06 — Look for generated report files in the sibling backend data folder.
+  /* FEATURE 06 — Look for generated report files in the published or sibling backend data folder.
      fetch requests files over HTTP; Promise.all starts independent file requests together.
-     This static page can load files from a local web server but is not itself the API server. */
+     This static page can load files over HTTP but is not itself the API server. */
   async function fetchBackendFile(folder, fileName) {
     try {
       const response = await fetch(folder + fileName, { cache: "no-store" });
@@ -1540,6 +1540,7 @@
     }
 
     const backendFolders = [
+      "data/",
       "../devbuzz_backend%20only%202026/data/",
       "../devbuzz_backend%20only%202026%20clean%20backend/data/",
       "../devbuzz_backend/data/"

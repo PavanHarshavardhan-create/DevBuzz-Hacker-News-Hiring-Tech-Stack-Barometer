@@ -32,7 +32,7 @@ The interface uses a graphite base with ember and brass accents, compact report 
 
 ## Connect the backend folder
 
-The dashboard looks for the backend files in the project folder named **devbuzz_backend only 2026**:
+The dashboard checks the published `data/` folder first, then looks for a sibling backend folder named **devbuzz_backend only 2026** when run locally:
 
 - data/monthly_share.json or data/monthly_share.csv for charts and rankings.
 - data/postings.csv for the source text in the hiring feed.

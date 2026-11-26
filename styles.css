@@ -531,7 +531,7 @@ h1 em { color: var(--orange-bright); font: italic 1.06em 'Instrument Serif', Geo
 .panel-heading h2, .feed-heading h2, .methodology-heading h2 { margin: 6px 0 4px; color: var(--text); font-size: 16px; font-weight: 500; letter-spacing: -.035em; }
 .panel-description { color: var(--muted); font-size: 9px; }
 .compact-select { min-height: 29px; }
-.trend-chart-frame { height: 270px; margin-top: 13px; }
+.trend-chart-frame { height: 330px; margin-top: 13px; }
 .chart-message { color: var(--muted); }
 .chart-footnote { color: var(--subtle); font: 7px 'DM Mono', monospace; }
 .chart-footnote > span:first-child { color: var(--muted); }
@@ -955,3 +955,6 @@ h1 em { color: var(--orange-bright); font: italic 1.06em 'Instrument Serif', Geo
   .workmode-item { grid-template-columns: 7px 1fr auto; gap: 4px 6px; padding-inline: 8px; }
 }
 
+
+/* Keep the complete trend graph visible on small screens. */
+@media (max-width: 560px) { .trend-chart-frame { height: 285px; } }

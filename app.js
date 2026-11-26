@@ -83,7 +83,9 @@
   // SVG is a small text format for sharp vector images; the icon is decorative for screen readers.
   function icon(name, extraClass) {
     const library = window.DEVBUZZ_LUCIDE_ICONS || {};
-    const svg = library[name];
+    const svg = library[name] || (name === "map-pin"
+      ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>'
+      : "");
     if (!svg) return "";
     const className = extraClass ? "icon " + extraClass : "icon";
     return svg.replace("<svg", '<svg class="' + className + '" aria-hidden="true" focusable="false"');
@@ -172,9 +174,13 @@
   // MONTH-TO-MONTH COMPARISON — Used by the KPI cards, table, and insight message.
   // A delta is the difference between two values; “pp” means percentage points.
   function previousMonthKey(monthKey) {
-    const allMonths = monthsInData();
-    const index = allMonths.indexOf(monthKey);
-    return index > 0 ? allMonths[index - 1] : "";
+    const parts = String(monthKey || "").split("-");
+    if (parts.length !== 2) return "";
+    const year = Number(parts[0]);
+    const month = Number(parts[1]);
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) return "";
+    const previous = new Date(year, month - 2, 1);
+    return previous.getFullYear() + "-" + String(previous.getMonth() + 1).padStart(2, "0");
   }
 
   function metricFor(technology, monthKey) {
@@ -185,11 +191,11 @@
 
   function monthDelta(technology) {
     const previous = previousMonthKey(state.selectedMonth);
-    if (!previous) return null;
+    if (!previous || !monthsInData().includes(previous)) return null;
     const current = metricFor(technology, state.selectedMonth);
     const old = metricFor(technology, previous);
-    if (!current || !old) return null;
-    return numberValue(current.posting_share_pct) - numberValue(old.posting_share_pct);
+    if (!current) return null;
+    return numberValue(current.posting_share_pct) - (old ? numberValue(old.posting_share_pct) : 0);
   }
 
   /* FEATURE 04 — Draw the small history bars in each KPI card.
@@ -400,12 +406,16 @@
      Why: 1M/3M/6M/1Y buttons need the same month list for the line chart and KPI bars.
      JavaScript numbers months from 0 to 11 internally, so the date math converts carefully. */
   function selectedMonths() {
-    const availableMonths = monthsInData().filter(function (month) {
-      return month <= state.selectedMonth;
+    if (!monthsInData().includes(state.selectedMonth)) return [];
+    const parts = state.selectedMonth.split("-");
+    const selectedDate = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+    const isYearView = state.rangeMonths >= 12;
+    const firstMonth = isYearView ? 0 : selectedDate.getMonth() - state.rangeMonths + 1;
+    const monthCount = isYearView ? selectedDate.getMonth() + 1 : state.rangeMonths;
+    return Array.from({ length: monthCount }, function (_value, index) {
+      const date = new Date(selectedDate.getFullYear(), firstMonth + index, 1);
+      return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
     });
-    if (!availableMonths.length) return [];
-    const range = Math.max(1, Number(state.rangeMonths) || 1);
-    return availableMonths.slice(-range);
   }
 
   /* FEATURE 05 — Prepare chart data for every technology in the selected category.
@@ -475,7 +485,6 @@
         pointBorderColor: color,
         tension: 0.42,
         cubicInterpolationMode: "monotone",
-        clip: false,
         spanGaps: false
       };
     });
@@ -504,7 +513,6 @@
     const options = {
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { top: 12, right: 18, bottom: 8, left: 8 } },
       interaction: { mode: "nearest", intersect: false },
       plugins: {
         legend: { display: false },
@@ -1448,6 +1456,11 @@
       sidebarPinButton.setAttribute("aria-pressed", String(sidebarPinned));
       sidebarPinButton.setAttribute("aria-label", sidebarPinned ? "Unpin sidebar" : "Keep sidebar expanded");
       sidebarPinButton.title = sidebarPinned ? "Unpin sidebar" : "Keep sidebar expanded";
+    }
+    function setNavigationOpen(isOpen) {
+      sidebarPinned = Boolean(isOpen);
+      sidebarHoverExpanded = Boolean(isOpen);
+      setSidebarExpanded();
     }
     workspaceSidebar.addEventListener("pointermove", function (event) {
       if (touchLayout.matches || event.pointerType === "touch") return;

@@ -531,7 +531,7 @@ h1 em { color: var(--orange-bright); font: italic 1.06em 'Instrument Serif', Geo
 .panel-heading h2, .feed-heading h2, .methodology-heading h2 { margin: 6px 0 4px; color: var(--text); font-size: 16px; font-weight: 500; letter-spacing: -.035em; }
 .panel-description { color: var(--muted); font-size: 9px; }
 .compact-select { min-height: 29px; }
-.trend-chart-frame { height: 330px; margin-top: 13px; }
+.trend-chart-frame { height: 270px; margin-top: 13px; }
 .chart-message { color: var(--muted); }
 .chart-footnote { color: var(--subtle); font: 7px 'DM Mono', monospace; }
 .chart-footnote > span:first-child { color: var(--muted); }
@@ -916,6 +916,9 @@ h1 em { color: var(--orange-bright); font: italic 1.06em 'Instrument Serif', Geo
 /* Work mode is deliberately presented as a text estimate, not a live classification. */
 .workmode-section { margin: 0 0 30px; padding: 20px; border-color: var(--line-strong); background: linear-gradient(130deg, rgba(31, 25, 18, .94), rgba(16, 14, 11, .96)); scroll-margin-top: 82px; }
 .workmode-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
+.workmode-title-row { display: flex; align-items: center; gap: 10px; }
+.workmode-title-icon { display: inline-flex; width: 30px; height: 30px; flex: 0 0 30px; align-items: center; justify-content: center; border: 1px solid rgba(245, 160, 91, .28); color: var(--orange-bright); background: rgba(245, 160, 91, .08); }
+.workmode-title-icon svg { width: 16px; height: 16px; }
 .workmode-heading h2 { margin: 7px 0 5px; color: var(--text); font-size: 19px; font-weight: 550; letter-spacing: -.035em; }
 .workmode-heading .panel-description { max-width: 580px; }
 .workmode-period { flex: 0 0 auto; padding: 7px 9px; border: 1px solid var(--line); color: var(--gold); background: rgba(239, 203, 120, .045); font: 7px 'DM Mono', monospace; letter-spacing: .09em; }
@@ -955,6 +958,3 @@ h1 em { color: var(--orange-bright); font: italic 1.06em 'Instrument Serif', Geo
   .workmode-item { grid-template-columns: 7px 1fr auto; gap: 4px 6px; padding-inline: 8px; }
 }
 
-
-/* Keep the complete trend graph visible on small screens. */
-@media (max-width: 560px) { .trend-chart-frame { height: 285px; } }

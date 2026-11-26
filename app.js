@@ -400,12 +400,16 @@
      Why: 1M/3M/6M/1Y buttons need the same month list for the line chart and KPI bars.
      JavaScript numbers months from 0 to 11 internally, so the date math converts carefully. */
   function selectedMonths() {
-    const availableMonths = monthsInData().filter(function (month) {
-      return month <= state.selectedMonth;
+    if (!monthsInData().includes(state.selectedMonth)) return [];
+    const parts = state.selectedMonth.split("-");
+    const selectedDate = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+    const isYearView = state.rangeMonths >= 12;
+    const firstMonth = isYearView ? 0 : selectedDate.getMonth() - state.rangeMonths + 1;
+    const monthCount = isYearView ? selectedDate.getMonth() + 1 : state.rangeMonths;
+    return Array.from({ length: monthCount }, function (_value, index) {
+      const date = new Date(selectedDate.getFullYear(), firstMonth + index, 1);
+      return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0");
     });
-    if (!availableMonths.length) return [];
-    const range = Math.max(1, Number(state.rangeMonths) || 1);
-    return availableMonths.slice(-range);
   }
 
   /* FEATURE 05 — Prepare chart data for every technology in the selected category.
@@ -475,7 +479,6 @@
         pointBorderColor: color,
         tension: 0.42,
         cubicInterpolationMode: "monotone",
-        clip: false,
         spanGaps: false
       };
     });
@@ -504,7 +507,6 @@
     const options = {
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { top: 12, right: 18, bottom: 8, left: 8 } },
       interaction: { mode: "nearest", intersect: false },
       plugins: {
         legend: { display: false },

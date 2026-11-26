@@ -1,52 +1,84 @@
-# DevBuzz Dashboard source
+# DevBuzz — beginner guide
 
-This package separates the dashboard into HTML, CSS, and JavaScript files.
+DevBuzz is a small, responsive Hacker News hiring dashboard built with plain HTML, CSS, and JavaScript. Chart.js draws its charts. There is no bundler or front-end framework to learn first.
 
-## Run
+## Open the website
 
-Open `index.html` in a modern browser. The framework and chart libraries are bundled locally. An internet connection is still required for Google Fonts and live Hacker News work-mode data.
+The page can open as a file:
 
-## Dependencies
+1. Open Devv_Buzz.html in a browser.
+2. The sample report will appear immediately.
 
-- Bootstrap 5.3.3 CSS and bundle — included in `assets/` (Bootstrap JavaScript is available locally; the dashboard primarily uses Bootstrap CSS)
-- Chart.js 4.4.3 — included in `assets/`; chart definitions and rendering are in `app.js`
-- Library license files are included at the project root
-- Google Fonts — loaded from Google Fonts in `index.html`
+To let the dashboard also look for a generated backend report, serve the project folder over a local web server. In VS Code, open a terminal at the project folder and run:
 
-The dashboard uses illustrative sample posting counts and technology shares where historical processed data is not available.
-# DevBuzz-Hacker-News-Hiring-Tech-Stack-Barometer
-DevBuzz turns a small, recent sample of Hacker News “Who is hiring?” posts into a transparent view of technology mentions over time. It is an educational data analytics project for learners and reviewers.
+    python -m http.server 8000
 
-*Status:* In development 
+Then open http://localhost:8000/Frontend/Devv_Buzz.html.
 
-## What it does
+Chart.js is loaded from jsDelivr, so an internet connection is needed for the charts. The rest of the dashboard and the demo data are local.
 
-- Collects the three most recent monthly hiring threads.
-- Cleans top-level job comments and tags a configured set of technologies.
-- Computes monthly posting shares in Python.
-- Displays the generated data in a static dashboard with a month selector.
-- Explains the methodology and sampling limitations.
+## Files at a glance
 
-## Technology
+| File | What it does |
+| --- | --- |
+| Devv_Buzz.html | Page structure, accessible controls, chart canvases, and page sections. |
+| styles.css | DevBuzz's graphite, ember, and brass visual system, layout, and responsive breakpoints. |
+| app.js | Imports data, calculates the visible metrics, draws Chart.js charts, and wires up the controls. |
+| data.js | Small example dataset used when no real report has been imported. |
+| assets/lucide-icons.js | Lucide SVG icons from the local icon plugin. |
+| assets/LUCIDE-LICENSE.txt | License for the bundled Lucide icons. |
 
-Python 3.11+, Hacker News Firebase API, SQLite, pandas, HTML/CSS/JavaScript, Chart.js, GitHub Pages.
+The interface uses a graphite base with ember and brass accents, compact report labels, a narrow navigation rail, and a restrained serif headline. Its visual identity and report controls are specific to DevBuzz.
 
-## Getting started
+## Connect the backend folder
 
-Prerequisites: Git, Python 3.11+, and a modern browser. The repository URL and exact script commands are not recorded in this draft. After confirming the repository, follow the SETUP & INITIALISATION page for environment creation, dependency installation, collection, analysis, and local dashboard review.
+The dashboard looks for the backend files in the project folder named **devbuzz_backend only 2026**:
 
-## Data and interpretation
+- data/monthly_share.json or data/monthly_share.csv for charts and rankings.
+- data/postings.csv for the source text in the hiring feed.
+- data/posting_tech.csv for the technology tags on each post.
+- data/tech_dictionary.csv for technology categories.
 
-“Posting share” means the fraction of eligible top-level comments in a month that mention a canonical technology. It is not unique-company share, job count, hiring probability, salary evidence, or a representative labor-market measure. Hacker News users and employers create a biased sample. Technology matching is rule-based and must be interpreted with the measured validation results.
+The report outputs are created by the Python pipeline. Open a second terminal at the project root and run:
 
-## Project structure
+    cd "devbuzz_backend only 2026"
+    python run_pipeline.py
 
-The proposed layout includes pipeline scripts for collect, clean, alias matching, extraction, and analysis; notebooks for exploration; tests and a labeled sample; docs for static assets and generated JSON; and a local-only data directory for SQLite. Confirm actual paths in the repository.
+When the pipeline finishes, return to the dashboard and click **Refresh data**. The page will fetch the output files from the backend folder, update the charts and leaderboard, and show imported job posts. If you open the page as a file, use **Import data** to select the generated report files instead; browsers restrict file-to-file reads.
 
-## Contributing
+The backend does not provide structured company, role, salary, or work-mode fields. Hiring-feed headings infer company and role labels from recognizable post headers or role phrases; if no role is clear, the heading uses detected technologies or a general opportunity label. These are display labels inferred from public post text, not backend fields. When `postings.csv` includes post text, the dashboard estimates remote, on-site, hybrid, and unspecified shares from phrases in that text. These are heuristic estimates, not backend classifications; reports with monthly metrics only and no post text cannot show them. The collector currently filters out threads older than 2026.
 
-Use focused branches, review changes with the other teammate, add regression tests, and keep generated output traceable. Do not commit credentials or the local database.
+### Current 2026 report
 
-## Acknowledgments
+The generated report currently covers the January through November 2026 Hacker News “Who is Hiring” threads. November is a partial month because the current-month thread is still active. This snapshot contains 3,137 cleaned hiring posts and 6,894 technology matches. The dashboard selects the latest available month and opens its trend chart in the 1Y range, so all available 2026 months appear together.
 
-Data source: Hacker News public hiring threads. Link the exact official API documentation and project repository after they are confirmed.
+## How the numbers work
+
+For a technology such as Python:
+
+    post share = distinct job posts that mention Python
+                 ÷ all valid job posts in that month
+                 × 100
+
+If Python is in 288 of 842 posts, its post share is 288 ÷ 842 × 100 = 34.2%. A post can mention Python, PostgreSQL, and AWS together. That is why technology percentages can add up to more than 100%.
+
+The month-over-month change is the difference between two post-share percentages. If Rust rises from 13.8% to 18.6%, that is an increase of 4.8 percentage points (pp).
+
+## How to explain the project
+
+> “DevBuzz is a small market-research dashboard for public Hacker News hiring posts. A Python pipeline collects and cleans the posts, matches technology names from a dictionary, and writes monthly CSV and JSON summaries. The front end reads that report, lets a user compare months and technology categories, and uses Chart.js to show trends. I separated the page structure, styles, sample data, and behavior so I can update one part without rewriting the whole page.”
+
+## Main JavaScript pieces
+
+- renderAll() refreshes the visible dashboard after the month or data changes.
+- updateKpis() shows the most-mentioned and second-ranked technologies by selected-month post share.
+- drawTrendChart() and drawMixChart() create or update the Chart.js charts.
+- renderWorkMode() groups imported post text into phrase-based work-mode estimates for the selected month.
+- The report context strip shows the selected month, valid-post count, data source, and local load time.
+- The separate Stack Comparison block below the Technology Matrix shows only technologies the reader adds, sorted by selected-month post share.
+- The chart uses the currently loaded report metrics, including backend data refreshed from the generated report files. Adding a technology updates that block without filtering the matrix or hiring feed.
+- renderTable() filters and paginates the technology list.
+- parseCSV() reads quoted CSV fields, including commas inside post text.
+- importSelectedFiles() recognizes the backend’s report and intermediate CSV files.
+
+The sample figures are examples, not live market statistics. The website reads the backend's generated files directly; no extra server or database is needed beyond serving the project folder so the browser can read those files.
